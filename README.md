@@ -1,20 +1,20 @@
-# Receivable Radar
+# PermitPulse
 
-**CALL-E hackathon build:** one approved phone follow-up turns a stuck invoice into a structured accounts-receivable exception and next action.
+**CALL-E hackathon build:** one approved phone status call turns a permit-office queue into a structured project next step.
 
 ## Why this exists
 
-Accounts-receivable teams lose hours chasing basic facts that are often easiest to obtain by phone: Was the invoice received? Is it disputed? Is a PO missing? Is approval pending? Was payment already sent? What is the smallest action that unblocks the case?
+Contractors, architects, and project coordinators repeatedly call permit offices to answer basic but schedule-critical questions: Was the permit received? Is it still in review? Is a correction missing? Is an inspection ready to schedule? Which department owns the next step?
 
-Receivable Radar uses CALL-E for that bounded phone work, then returns a machine-readable evidence receipt. It deliberately does **not** collect payment credentials, take payment, negotiate terms, threaten collection action, or make legal claims.
+PermitPulse uses CALL-E for that bounded phone work, then returns a machine-readable permit status receipt. It deliberately does **not** impersonate government, make code-compliance claims, pay fees, submit documents, or autonomously schedule/cancel inspections.
 
 ## Product flow
 
-1. Enter invoice + recipient details.
-2. Review three live-call gates: contact permission, AI disclosure, and fresh intent.
-3. CALL-E places one purpose-bounded outbound call.
-4. CALL-E extracts structured AR fields: receipt, dispute status, payment status, blocker category, expected resolution date, and next action.
-5. The UI renders a collections receipt with evidence for human review.
+1. Enter the permit, project, jurisdiction, and authorized office number.
+2. Review three live-call gates: contact authorization, AI disclosure, and fresh intent.
+3. CALL-E places one purpose-bounded status call.
+4. CALL-E extracts permit status, missing items, inspection status, next available date (if volunteered), department/contact, and next action.
+5. The UI renders a project handoff with evidence for human review.
 
 ## CALL-E integration
 
@@ -33,20 +33,20 @@ Without `CALLE_API_KEY`, the app remains fully inspectable in clearly labeled sy
 
 ## Hackathon positioning
 
-Target category: **Most Practical Use Case**. The phone is not ornamental: the product exists for payment blockers that live in accounts-payable inboxes, phone queues, and internal approval chains rather than clean APIs.
+Target category: **Most Practical Use Case**. Permit and inspection status is a phone-native operational bottleneck in many jurisdictions where online portals lag the actual review queue or do not expose the reason a case is stuck.
 
 ## Safety boundary
 
 - explicit authorization before dialing
-- mandatory AI disclosure approval
+- mandatory AI disclosure; never claims to be a government official
 - one fresh intent gate per call
 - E.164 validation
 - deterministic idempotency key
-- no payment credential collection
-- no promise-to-pay requests
-- no negotiation or threats
+- no legal/code-compliance claims
+- no fee payment or credentials
+- no document submission or autonomous booking
 - unknown beats guessing
-- human owns every downstream collections decision
+- human owns every downstream project decision
 
 ## License
 
