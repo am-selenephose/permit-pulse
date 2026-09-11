@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildTask, idempotencyKey, validateCase, type PermitCase } from "./permits";
+import { buildTask, idempotencyKey, resolveDialPhone, validateCase, type PermitCase } from "./permits";
 
 const base: PermitCase = {
   companyName: "Northstar Construction",
@@ -22,5 +22,9 @@ describe("permit call contract", () => {
     expect(task).toContain("not a government official");
     expect(task).toContain("Do not make legal or code-compliance claims");
     expect(task).toContain("Record unknown instead of guessing");
+  });
+  it("routes field trials only to the explicit consenting override", () => {
+    expect(resolveDialPhone(base, "+14155550199")).toBe("+14155550199");
+    expect(() => resolveDialPhone(base, "not-a-phone")).toThrow(/E.164/);
   });
 });

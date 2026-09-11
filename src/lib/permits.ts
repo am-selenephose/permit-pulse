@@ -39,10 +39,16 @@ export function buildTask(c: PermitCase) {
   ].join(" ");
 }
 
-export function idempotencyKey(c: PermitCase) {
+export function resolveDialPhone(c: PermitCase, fieldTrialPhone?: string) {
+  const candidate = (fieldTrialPhone || c.recipientPhone).trim();
+  if (!/^\+\d{8,15}$/.test(candidate)) throw new Error("Dial phone must be valid E.164.");
+  return candidate;
+}
+
+export function idempotencyKey(c: PermitCase, dialPhone = c.recipientPhone) {
   const canonical = JSON.stringify({
     companyName: c.companyName.trim(), projectName: c.projectName.trim(), permitNumber: c.permitNumber.trim(),
-    projectAddress: c.projectAddress.trim(), jurisdiction: c.jurisdiction.trim(), recipientPhone: c.recipientPhone.trim(),
+    projectAddress: c.projectAddress.trim(), jurisdiction: c.jurisdiction.trim(), recipientPhone: dialPhone.trim(),
     region: c.region, locale: c.locale,
   });
   return `pp_${createHash("sha256").update(canonical).digest("hex").slice(0, 32)}`;
