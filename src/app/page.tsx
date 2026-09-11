@@ -6,8 +6,10 @@ type Outcome = {
   invoice_received?: string;
   dispute_status?: string;
   dispute_reason?: string;
-  expected_payment_date?: string;
+  payment_status?: string;
+  expected_resolution_date?: string;
   blocker_category?: string;
+  next_action?: string;
   contact_name?: string;
   follow_up_requested?: boolean;
   notes?: string;
@@ -38,13 +40,15 @@ const demoResult: Result = {
     invoice_received: "yes",
     dispute_status: "none",
     dispute_reason: "",
-    expected_payment_date: "2026-09-16",
+    payment_status: "unpaid",
+    expected_resolution_date: "2026-09-16",
     blocker_category: "approval_pending",
+    next_action: "wait_for_approval",
     contact_name: "Accounts Payable",
     follow_up_requested: false,
     notes: "Invoice is in the payment queue; no billing dispute was raised.",
   },
-  summary: "Invoice received, not disputed, payment expected after internal approval.",
+  summary: "Invoice is valid and received; payment is blocked by internal approval. No collection action needed yet — follow up after September 16.",
 };
 
 export default function Home() {
@@ -139,7 +143,7 @@ export default function Home() {
               CALL-E Hackathon · Accounts Receivable
             </div>
             <h1 className="text-4xl font-semibold tracking-[-0.04em] md:text-6xl">Receivable Radar</h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-white/60 md:text-lg">Turn an overdue invoice into a verified next step — one disclosed, purpose-bounded phone call at a time.</p>
+            <p className="mt-3 max-w-2xl text-base leading-7 text-white/60 md:text-lg">Turn a stuck invoice into a diagnosed AR exception — one disclosed, purpose-bounded phone call at a time.</p>
           </div>
           <div className="flex gap-3 text-xs">
             <span className={`rounded-full border px-3 py-2 ${liveConfigured ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200" : "border-amber-400/30 bg-amber-400/10 text-amber-200"}`}>
@@ -208,9 +212,11 @@ export default function Home() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <Outcome label="Received" value={outcome?.invoice_received} />
-                  <Outcome label="Dispute" value={outcome?.dispute_status} />
                   <Outcome label="Blocker" value={outcome?.blocker_category} />
-                  <Outcome label="Expected pay date" value={outcome?.expected_payment_date} />
+                  <Outcome label="Payment status" value={outcome?.payment_status} />
+                  <Outcome label="Next action" value={outcome?.next_action} />
+                  <Outcome label="Dispute" value={outcome?.dispute_status} />
+                  <Outcome label="Resolution date" value={outcome?.expected_resolution_date} />
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-xs uppercase tracking-[.16em] text-white/40">Machine-readable next step</p>
@@ -223,7 +229,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/[.06] p-4 text-sm leading-6 text-emerald-100/80">
-                  <strong className="text-emerald-200">Boundary:</strong> Receivable Radar never takes payment, collects financial credentials, negotiates terms, or threatens collection action. It turns one approved phone follow-up into structured operational evidence for a human AR team.
+                  <strong className="text-emerald-200">Boundary:</strong> Receivable Radar never asks for a promise-to-pay, takes payment, collects financial credentials, negotiates terms, or threatens collection action. It diagnoses the operational exception so a human AR team knows the smallest next step.
                 </div>
               </div>
             )}

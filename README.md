@@ -1,10 +1,10 @@
 # Receivable Radar
 
-**CALL-E hackathon build:** one approved phone follow-up turns an overdue invoice into a structured accounts-receivable next step.
+**CALL-E hackathon build:** one approved phone follow-up turns a stuck invoice into a structured accounts-receivable exception and next action.
 
 ## Why this exists
 
-Accounts-receivable teams lose hours chasing basic facts that are often easiest to obtain by phone: Was the invoice received? Is it disputed? What is blocking payment? When should the team follow up again?
+Accounts-receivable teams lose hours chasing basic facts that are often easiest to obtain by phone: Was the invoice received? Is it disputed? Is a PO missing? Is approval pending? Was payment already sent? What is the smallest action that unblocks the case?
 
 Receivable Radar uses CALL-E for that bounded phone work, then returns a machine-readable evidence receipt. It deliberately does **not** collect payment credentials, take payment, negotiate terms, threaten collection action, or make legal claims.
 
@@ -13,7 +13,7 @@ Receivable Radar uses CALL-E for that bounded phone work, then returns a machine
 1. Enter invoice + recipient details.
 2. Review three live-call gates: contact permission, AI disclosure, and fresh intent.
 3. CALL-E places one purpose-bounded outbound call.
-4. CALL-E extracts structured AR fields: receipt, dispute status, blocker, expected payment date, follow-up request.
+4. CALL-E extracts structured AR fields: receipt, dispute status, payment status, blocker category, expected resolution date, and next action.
 5. The UI renders a collections receipt with evidence for human review.
 
 ## CALL-E integration
@@ -43,6 +43,7 @@ Target category: **Most Practical Use Case**. The phone is not ornamental: the p
 - E.164 validation
 - deterministic idempotency key
 - no payment credential collection
+- no promise-to-pay requests
 - no negotiation or threats
 - unknown beats guessing
 - human owns every downstream collections decision

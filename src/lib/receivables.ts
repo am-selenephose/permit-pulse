@@ -18,7 +18,9 @@ export const recipientResultSchema = {
   required: [
     "invoice_received",
     "dispute_status",
-    "expected_payment_date",
+    "payment_status",
+    "expected_resolution_date",
+    "next_action",
     "follow_up_requested",
     "notes",
   ],
@@ -26,10 +28,15 @@ export const recipientResultSchema = {
     invoice_received: { type: "string", enum: ["yes", "no", "unknown"] },
     dispute_status: { type: "string", enum: ["none", "disputed", "unclear"] },
     dispute_reason: { type: "string" },
-    expected_payment_date: { type: "string" },
+    payment_status: { type: "string", enum: ["unpaid", "payment_sent", "unknown"] },
+    expected_resolution_date: { type: "string" },
     blocker_category: {
       type: "string",
       enum: ["none", "missing_invoice", "approval_pending", "purchase_order_issue", "billing_error", "cashflow_timing", "other", "unknown"],
+    },
+    next_action: {
+      type: "string",
+      enum: ["resend_invoice", "provide_purchase_order", "correct_billing_error", "wait_for_approval", "verify_incoming_payment", "human_review", "none"],
     },
     contact_name: { type: "string" },
     follow_up_requested: { type: "boolean" },
@@ -42,8 +49,8 @@ export function buildTask(c: ReceivableCase) {
     `You are an AI calling on behalf of ${c.businessName}.`,
     `At the beginning, clearly disclose that you are an AI assistant making a business accounts-receivable follow-up call.`,
     `Ask only about invoice ${c.invoiceNumber}, amount ${c.currency} ${c.amount}, due ${c.dueDate}.`,
-    `Goal: confirm whether the invoice was received; determine whether it is disputed; if disputed, capture the exact blocker or reason; if undisputed, ask for the expected payment date; ask whether a human follow-up is requested.`,
-    `Do not collect card/bank credentials, take payment, negotiate terms, threaten consequences, make legal claims, discuss unrelated debts, or make commitments on behalf of either party.`,
+    `Goal: diagnose the operational exception preventing this invoice from clearing. Confirm whether the invoice was received, whether it is disputed, whether payment was already sent, the blocker category, any expected resolution date, and the smallest concrete next action our accounts-receivable team should take.`,
+    `Do not ask for a promise-to-pay, collect card/bank credentials, take payment, negotiate terms, threaten consequences, make legal claims, discuss unrelated debts, or make commitments on behalf of either party.`,
     `If the recipient asks you to stop, end the call. If information is unavailable, record unknown instead of guessing.`,
   ].join(" ");
 }
