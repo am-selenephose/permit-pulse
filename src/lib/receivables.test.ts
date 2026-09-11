@@ -25,7 +25,8 @@ describe("receivable call contract", () => {
   });
   it("hard-codes the non-collection safety boundary into the call goal", () => {
     const task = buildTask(base);
-    expect(task).toContain("Do not collect card/bank credentials");
+    expect(task).toContain("Do not ask for a promise-to-pay");
+    expect(task).toContain("collect card/bank credentials");
     expect(task).toContain("or make commitments");
     expect(task).toContain("record unknown instead of guessing");
   });
