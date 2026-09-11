@@ -1,0 +1,37 @@
+{
+  "status": "not_called",
+  "recipient": "+***0123",
+  "task": "You are an AI project-coordination assistant calling on behalf of Northstar Construction. Disclose immediately that you are an AI assistant and not a government official. Ask only about permit BLD-2026-1042 for Riverside Tenant Improvement at 100 Market Street in Example City. Determine current permit status, any missing correction or document, inspection readiness, any date the office volunteers, department/contact, and the smallest administrative next action. Do not make legal or code-compliance claims, pay fees, submit documents, schedule or cancel an inspection, or make commitments. Stop if asked. Record unknown instead of guessing.",
+  "result_schema": {
+    "permit_status": [
+      "received",
+      "in_review",
+      "approved",
+      "denied",
+      "correction_required",
+      "unknown"
+    ],
+    "missing_items": "string",
+    "inspection_status": [
+      "not_required",
+      "not_ready",
+      "ready_to_schedule",
+      "scheduled",
+      "unknown"
+    ],
+    "next_available_date": "YYYY-MM-DD or empty",
+    "next_action": [
+      "wait_for_review",
+      "submit_correction",
+      "provide_document",
+      "schedule_inspection",
+      "contact_reviewer",
+      "human_review",
+      "none"
+    ],
+    "department_or_contact": "string",
+    "follow_up_requested": "boolean",
+    "notes": "string"
+  },
+  "idempotency_key": "permit_status:4e0f5b485116e1a6132086e31a58dff3"
+}

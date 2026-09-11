@@ -1,0 +1,299 @@
+From a2ffd9180ab101f532fb667d42d8963023d83d2c Mon Sep 17 00:00:00 2001
+From: am-selenephos <am.statementforge@gmail.com>
+Date: Fri, 11 Sep 2026 20:50:57 +0500
+Subject: [PATCH] feat: add permit status check skill
+
+---
+ README.md                                     |   1 +
+ skills/permit-status-check/SKILL.md           | 105 ++++++++++++++++++
+ .../assets/sample-permit.json                 |  13 +++
+ .../references/examples.md                    |  40 +++++++
+ .../permit-status-check/references/safety.md  |  32 ++++++
+ skills/permit-status-check/scripts/preview.py |  45 ++++++++
+ 6 files changed, 236 insertions(+)
+ create mode 100644 skills/permit-status-check/SKILL.md
+ create mode 100644 skills/permit-status-check/assets/sample-permit.json
+ create mode 100644 skills/permit-status-check/references/examples.md
+ create mode 100644 skills/permit-status-check/references/safety.md
+ create mode 100755 skills/permit-status-check/scripts/preview.py
+
+diff --git a/README.md b/README.md
+index 5fce7c6..6c28047 100644
+--- a/README.md
++++ b/README.md
+@@ -154,6 +154,7 @@ This project is an awesome list for AI-agent phone-call workflows. Add resources
+ - [`ringer-consumer-tasks`](skills/ringer-consumer-tasks/) - Compose and safely place the dreaded consumer phone calls (bill negotiation, cancellation, refund, booking, quote comparison, inquiry) as CALL-E tasks with strict result schemas, dry-run-by-default previews, and human-in-the-loop decision authority.
+ - [`incident-escalation-call`](skills/incident-escalation-call/) - Walks an on-call escalation ladder one phone call at a time and records an acknowledgement only when an owner and an ETA are both quoted by words the recipient spoke, then re-reads the call over a second transport before the incident is reported as owned.
+ - [`hifi-hotel-negotiator`](skills/hifi-hotel-negotiator/) - Autonomous voice AI agent skill for hotel procurement, direct-booking rate negotiation, and reservation confirmation over the phone using CALL-E.
++- [`permit-status-check`](skills/permit-status-check/) - One authorized permit-office status call that returns structured permit/inspection status and a human-owned administrative next action without booking, payment, or legal/code-compliance claims.
+ - [`partline-part-sourcing`](skills/partline-part-sourcing/) - Preview-first industrial replacement-part sourcing that calls approved suppliers for exact part identity, quantity and shipping cutoffs, then ranks evidence-backed matches and leaves purchase and alternate approval to a human.
+ - [`concord-policy-audit`](skills/concord-policy-audit/) - Calls the branches an operator owns, judges each spoken answer against a written policy rubric compiled into the CALL-E result schema, and returns a branch-level gap register that carries no field capable of identifying the person who answered.
+ - [`ledger-collections-call`](skills/ledger-collections-call/) - HITL outbound collections call from overdue JSON (E.164, integer minor units, region); CALL-E `create` + poll; structured promise out; dry-run default; never posts to unsupported regions (including YE)
+diff --git a/skills/permit-status-check/SKILL.md b/skills/permit-status-check/SKILL.md
+new file mode 100644
+index 0000000..d0ab976
+--- /dev/null
++++ b/skills/permit-status-check/SKILL.md
+@@ -0,0 +1,105 @@
++---
++name: permit-status-check
++description: One authorized, disclosed CALL-E status call to a permitting or inspection office that returns a structured permit status and human-owned next action; dry-run by default and never books, pays, submits, or makes legal/code-compliance claims.
++license: MIT
++---
++
++# Permit Status Check
++
++Use this skill when a contractor, architect, or project coordinator has authority to contact a permitting or inspection office about one known permit case and needs a factual status update.
++
++The skill asks for the current permit status, any missing correction or document, inspection readiness, any date the office volunteers, the responsible department/contact, and the smallest administrative next action.
++
++It does **not** impersonate a government official, make legal or code-compliance conclusions, pay fees, submit documents, or book/cancel inspections.
++
++## When To Use
++
++- One known permit or inspection case with a real reference number.
++- The operator is authorized to call the office about that project.
++- The goal is status/exception discovery, not legal advice or autonomous government interaction.
++- A human project team owns every downstream action.
++
++## When Not To Use
++
++- General legal or building-code advice.
++- Filing applications, submitting corrections, paying fees, or booking/canceling inspections.
++- Calling numbers the operator did not provide or authorize.
++- Hidden retries or recurring calls.
++- Any case where the office asks the caller to stop or declines to discuss the permit.
++
++## Required Inputs
++
++- `request_id`: stable local identifier.
++- `company_name`: business disclosed on the call.
++- `project_name`: human-readable project name.
++- `permit_number`: exact permit/application reference.
++- `project_address`: project address supplied by the operator.
++- `jurisdiction`: city/county/authority name.
++- `office_name`: permitting or inspection office.
++- `to_phone_e164`: authorized E.164 number.
++- `region`: explicit CALL-E-supported region.
++- `locale`: supported locale.
++- `authorized`: must be `true`.
++
++## Dry-Run Preview
++
++No CALL-E credentials and no network are required:
++
++```bash
++python3 skills/permit-status-check/scripts/preview.py   --request skills/permit-status-check/assets/sample-permit.json
++```
++
++The preview prints a masked phone number, the exact CALL-E task, a structured-result contract, and a deterministic idempotency key. It never dials.
++
++## CALL-E Goal Template
++
++```text
++You are an AI project-coordination assistant calling on behalf of {company_name}.
++Disclose immediately that you are an AI assistant and not a government official.
++Ask only about permit {permit_number} for {project_name} at {project_address} in {jurisdiction}.
++
++Goal: determine the current permit status, any missing correction or document,
++whether an inspection is required or ready to schedule, any date the office
++volunteers, the responsible department/contact, and the smallest administrative
++next action for the project team.
++
++Do not make legal or code-compliance claims, pay fees, submit documents, schedule
++or cancel an inspection, or make commitments. If the office cannot discuss the
++case or asks you to stop, end the call. Record unknown instead of guessing.
++```
++
++## Structured Result
++
++```json
++{
++  "permit_status": "received | in_review | approved | denied | correction_required | unknown",
++  "missing_items": "string",
++  "inspection_status": "not_required | not_ready | ready_to_schedule | scheduled | unknown",
++  "next_available_date": "YYYY-MM-DD or empty",
++  "next_action": "wait_for_review | submit_correction | provide_document | schedule_inspection | contact_reviewer | human_review | none",
++  "department_or_contact": "string",
++  "follow_up_requested": false,
++  "notes": "string"
++}
++```
++
++A returned `schedule_inspection` value means only that the human project team should consider scheduling. It is not permission for the agent to book anything.
++
++## Live Execution
++
++A live host must:
++
++1. show the exact preview;
++2. confirm authority to contact the office;
++3. confirm AI disclosure;
++4. obtain a fresh explicit live-call intent;
++5. use a deterministic idempotency key;
++6. create at most one CALL-E call for that authorized attempt;
++7. retain and poll the returned call ID instead of creating a duplicate after a timeout;
++8. route the result to a human project queue.
++
++## Cancellation And Idempotency
++
++If the operator cancels before dispatch, do not call. Once CALL-E accepts a call, preserve that call ID and do not redial automatically. Any later follow-up is a new human decision.
++
++See `references/safety.md` and `references/examples.md`.
+diff --git a/skills/permit-status-check/assets/sample-permit.json b/skills/permit-status-check/assets/sample-permit.json
+new file mode 100644
+index 0000000..5aa7439
+--- /dev/null
++++ b/skills/permit-status-check/assets/sample-permit.json
+@@ -0,0 +1,13 @@
++{
++  "request_id": "demo-permit-001",
++  "company_name": "Northstar Construction",
++  "project_name": "Riverside Tenant Improvement",
++  "permit_number": "BLD-2026-1042",
++  "project_address": "100 Market Street",
++  "jurisdiction": "Example City",
++  "office_name": "Building Department",
++  "to_phone_e164": "+14155550123",
++  "region": "US",
++  "locale": "en-US",
++  "authorized": true
++}
+diff --git a/skills/permit-status-check/references/examples.md b/skills/permit-status-check/references/examples.md
+new file mode 100644
+index 0000000..f8df34f
+--- /dev/null
++++ b/skills/permit-status-check/references/examples.md
+@@ -0,0 +1,40 @@
++# Examples
++
++## Good: correction required
++
++The office confirms the permit is in review and one revised egress sheet is missing.
++
++```json
++{
++  "permit_status": "correction_required",
++  "missing_items": "Revised egress plan sheet",
++  "inspection_status": "not_ready",
++  "next_available_date": "",
++  "next_action": "submit_correction",
++  "department_or_contact": "Plan Review",
++  "follow_up_requested": false,
++  "notes": "Upload the revised egress sheet through the existing permit portal."
++}
++```
++
++The agent does not upload anything. The human project team decides what to do next.
++
++## Good: ready to schedule
++
++The office says the permit is approved and an inspection may now be requested. Return `inspection_status=ready_to_schedule` and `next_action=schedule_inspection`. Do not book the inspection on this call.
++
++## Good: payment/fee question
++
++If the office mentions an outstanding fee, record it only in `notes` if relevant to status. Do not request card details or attempt payment.
++
++## Refuse: legal interpretation
++
++User asks, "Call the city and tell me whether our design complies with the code."
++
++Do not use this skill. Permit Status Check retrieves administrative status; it does not provide legal or code-compliance conclusions.
++
++## Refuse: autonomous booking
++
++User asks, "Call and book the first inspection slot you can get."
++
++Do not use this skill to book. It may learn that scheduling is available, then return `schedule_inspection` for a human to review.
+diff --git a/skills/permit-status-check/references/safety.md b/skills/permit-status-check/references/safety.md
+new file mode 100644
+index 0000000..31d297d
+--- /dev/null
++++ b/skills/permit-status-check/references/safety.md
+@@ -0,0 +1,32 @@
++# Safety
++
++## Identity and disclosure
++
++The caller must say it is an AI assistant acting for the named project/company. It must never claim to be a city, county, inspector, building official, code official, or other government authority.
++
++## Authorization
++
++Use only a phone number explicitly supplied and authorized by the operator for this permit case. Do not scrape or infer a recipient number inside the skill.
++
++## Action boundary
++
++The skill is read/status oriented. It must never:
++
++- file or amend a permit application;
++- submit plans, corrections, or documents;
++- pay fees or collect financial credentials;
++- book, reschedule, or cancel an inspection;
++- make legal or code-compliance conclusions;
++- promise that the project will take a particular action.
++
++## Privacy
++
++Ask only about the supplied project/permit. Do not solicit unrelated personal information. Mask phone numbers in summaries and never commit live phone numbers, transcripts, or credentials.
++
++## Ambiguity
++
++If the office refuses, cannot locate the case, gives contradictory information, reaches voicemail, or asks the caller to stop, return `unknown` / `human_review` rather than guessing or redialing.
++
++## Idempotency
++
++A live host should derive one deterministic idempotency key from the normalized request. A local timeout must not create a second call; poll the existing provider call ID.
+diff --git a/skills/permit-status-check/scripts/preview.py b/skills/permit-status-check/scripts/preview.py
+new file mode 100755
+index 0000000..cd9b307
+--- /dev/null
++++ b/skills/permit-status-check/scripts/preview.py
+@@ -0,0 +1,45 @@
++#!/usr/bin/env python3
++import argparse, hashlib, json, re
++from pathlib import Path
++
++STATUS = ["received", "in_review", "approved", "denied", "correction_required", "unknown"]
++INSPECTION = ["not_required", "not_ready", "ready_to_schedule", "scheduled", "unknown"]
++ACTIONS = ["wait_for_review", "submit_correction", "provide_document", "schedule_inspection", "contact_reviewer", "human_review", "none"]
++
++def mask_phone(value):
++    digits = re.sub(r"\D", "", value)
++    return "+***" + digits[-4:] if len(digits) >= 4 else "***"
++
++def main():
++    ap = argparse.ArgumentParser(description="No-call permit status preview")
++    ap.add_argument("--request", required=True)
++    args = ap.parse_args()
++    req = json.loads(Path(args.request).read_text())
++    if req.get("authorized") is not True:
++        raise SystemExit("refused: authorized must be true")
++    phone = str(req.get("to_phone_e164", ""))
++    if not re.fullmatch(r"\+\d{8,15}", phone):
++        raise SystemExit("refused: to_phone_e164 must be E.164")
++    task = (
++        f"You are an AI project-coordination assistant calling on behalf of {req['company_name']}. "
++        "Disclose immediately that you are an AI assistant and not a government official. "
++        f"Ask only about permit {req['permit_number']} for {req['project_name']} at {req['project_address']} in {req['jurisdiction']}. "
++        "Determine current permit status, any missing correction or document, inspection readiness, any date the office volunteers, department/contact, and the smallest administrative next action. "
++        "Do not make legal or code-compliance claims, pay fees, submit documents, schedule or cancel an inspection, or make commitments. Stop if asked. Record unknown instead of guessing."
++    )
++    material = "|".join(str(req[k]).strip() for k in ["request_id", "company_name", "permit_number", "project_address", "jurisdiction", "to_phone_e164", "region", "locale"])
++    key = "permit_status:" + hashlib.sha256(material.encode()).hexdigest()[:32]
++    schema = {
++        "permit_status": STATUS,
++        "missing_items": "string",
++        "inspection_status": INSPECTION,
++        "next_available_date": "YYYY-MM-DD or empty",
++        "next_action": ACTIONS,
++        "department_or_contact": "string",
++        "follow_up_requested": "boolean",
++        "notes": "string"
++    }
++    print(json.dumps({"status": "not_called", "recipient": mask_phone(phone), "task": task, "result_schema": schema, "idempotency_key": key}, indent=2))
++
++if __name__ == "__main__":
++    main()
+-- 
+2.55.0
+
