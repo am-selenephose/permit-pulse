@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Receivable Radar
 
-## Getting Started
+**CALL-E hackathon build:** one approved phone follow-up turns an overdue invoice into a structured accounts-receivable next step.
 
-First, run the development server:
+## Why this exists
+
+Accounts-receivable teams lose hours chasing basic facts that are often easiest to obtain by phone: Was the invoice received? Is it disputed? What is blocking payment? When should the team follow up again?
+
+Receivable Radar uses CALL-E for that bounded phone work, then returns a machine-readable evidence receipt. It deliberately does **not** collect payment credentials, take payment, negotiate terms, threaten collection action, or make legal claims.
+
+## Product flow
+
+1. Enter invoice + recipient details.
+2. Review three live-call gates: contact permission, AI disclosure, and fresh intent.
+3. CALL-E places one purpose-bounded outbound call.
+4. CALL-E extracts structured AR fields: receipt, dispute status, blocker, expected payment date, follow-up request.
+5. The UI renders a collections receipt with evidence for human review.
+
+## CALL-E integration
+
+The server calls `POST /v1/calls` with a content-derived idempotency key and a closed recipient result schema, then polls `GET /v1/calls/{id}`. The API key stays server-side.
+
+## Local run
 
 ```bash
+cp .env.example .env.local
+# add CALLE_API_KEY for live mode
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Without `CALLE_API_KEY`, the app remains fully inspectable in clearly labeled synthetic demo mode. Live mode is disabled rather than silently simulated.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Hackathon positioning
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Target category: **Most Practical Use Case**. The phone is not ornamental: the product exists for payment blockers that live in accounts-payable inboxes, phone queues, and internal approval chains rather than clean APIs.
 
-## Learn More
+## Safety boundary
 
-To learn more about Next.js, take a look at the following resources:
+- explicit authorization before dialing
+- mandatory AI disclosure approval
+- one fresh intent gate per call
+- E.164 validation
+- deterministic idempotency key
+- no payment credential collection
+- no negotiation or threats
+- unknown beats guessing
+- human owns every downstream collections decision
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Proprietary. All rights reserved. The small upstream CALL-E contribution required for hackathon submission will be isolated from this application and contributed under the upstream repository's terms.

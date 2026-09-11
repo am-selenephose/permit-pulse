@@ -1,0 +1,74 @@
+import { createHash } from "node:crypto";
+
+export type ReceivableCase = {
+  businessName: string;
+  invoiceNumber: string;
+  amount: string;
+  currency: string;
+  dueDate: string;
+  recipientName: string;
+  recipientPhone: string;
+  region: string;
+  locale: string;
+};
+
+export const recipientResultSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "invoice_received",
+    "dispute_status",
+    "expected_payment_date",
+    "follow_up_requested",
+    "notes",
+  ],
+  properties: {
+    invoice_received: { type: "string", enum: ["yes", "no", "unknown"] },
+    dispute_status: { type: "string", enum: ["none", "disputed", "unclear"] },
+    dispute_reason: { type: "string" },
+    expected_payment_date: { type: "string" },
+    blocker_category: {
+      type: "string",
+      enum: ["none", "missing_invoice", "approval_pending", "purchase_order_issue", "billing_error", "cashflow_timing", "other", "unknown"],
+    },
+    contact_name: { type: "string" },
+    follow_up_requested: { type: "boolean" },
+    notes: { type: "string" },
+  },
+} as const;
+
+export function buildTask(c: ReceivableCase) {
+  return [
+    `You are an AI calling on behalf of ${c.businessName}.`,
+    `At the beginning, clearly disclose that you are an AI assistant making a business accounts-receivable follow-up call.`,
+    `Ask only about invoice ${c.invoiceNumber}, amount ${c.currency} ${c.amount}, due ${c.dueDate}.`,
+    `Goal: confirm whether the invoice was received; determine whether it is disputed; if disputed, capture the exact blocker or reason; if undisputed, ask for the expected payment date; ask whether a human follow-up is requested.`,
+    `Do not collect card/bank credentials, take payment, negotiate terms, threaten consequences, make legal claims, discuss unrelated debts, or make commitments on behalf of either party.`,
+    `If the recipient asks you to stop, end the call. If information is unavailable, record unknown instead of guessing.`,
+  ].join(" ");
+}
+
+export function idempotencyKey(c: ReceivableCase) {
+  const canonical = JSON.stringify({
+    businessName: c.businessName.trim(),
+    invoiceNumber: c.invoiceNumber.trim(),
+    amount: c.amount.trim(),
+    currency: c.currency.trim().toUpperCase(),
+    dueDate: c.dueDate,
+    recipientPhone: c.recipientPhone.trim(),
+    region: c.region,
+    locale: c.locale,
+  });
+  return `rr_${createHash("sha256").update(canonical).digest("hex").slice(0, 32)}`;
+}
+
+export function validateCase(c: ReceivableCase) {
+  const errors: string[] = [];
+  if (!c.businessName.trim()) errors.push("Business name is required.");
+  if (!c.invoiceNumber.trim()) errors.push("Invoice number is required.");
+  if (!/^\d+(\.\d{1,2})?$/.test(c.amount.trim())) errors.push("Amount must be a positive number with up to two decimals.");
+  if (!/^[A-Z]{3}$/.test(c.currency.trim().toUpperCase())) errors.push("Currency must be a 3-letter code.");
+  if (!/^\+\d{8,15}$/.test(c.recipientPhone.trim())) errors.push("Phone must be E.164, for example +14155550123.");
+  if (!c.dueDate) errors.push("Due date is required.");
+  return errors;
+}
