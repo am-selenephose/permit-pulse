@@ -57,7 +57,7 @@ The upstream contribution is intentionally smaller than PermitPulse itself: it c
 PermitPulse, the permit-specific result schema, safe live-call gates, field-trial routing, tests, UI, and reusable CALL-E skill were created for this hackathon entry.
 
 ## Public judge demo
-Interactive judge demo: https://keen-insight-pn5ef25.shipstatic.com
+Interactive judge demo: https://am-selenephos.github.io/permit-status-check-skill/
 
 The hosted judge demo is deliberately synthetic and labeled as such. It lets judges inspect the operator flow and structured receipt without credentials or live-call side effects. The production code path uses CALL-E server-side at runtime.
 
