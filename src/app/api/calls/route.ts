@@ -31,8 +31,11 @@ export async function POST(request: Request) {
     body: JSON.stringify(payload), cache: "no-store",
   });
   const raw = await response.json().catch(() => ({}));
-  if (!response.ok) return NextResponse.json({ error: raw?.message || raw?.error || `CALL-E returned HTTP ${response.status}.`, provider: raw }, { status: response.status });
+  if (!response.ok) {
+    const providerMessage = typeof raw?.message === "string" ? raw.message : typeof raw?.error === "string" ? raw.error : null;
+    return NextResponse.json({ error: providerMessage || `CALL-E returned HTTP ${response.status}.` }, { status: response.status });
+  }
   const callId = raw?.id ?? raw?.call_id ?? raw?.callId;
-  if (!callId) return NextResponse.json({ error: "CALL-E accepted the request but no call ID was returned.", provider: raw }, { status: 502 });
+  if (!callId) return NextResponse.json({ error: "CALL-E accepted the request but no call ID was returned." }, { status: 502 });
   return NextResponse.json({ callId, status: raw?.status || "accepted", fieldTrial }, { status: 201 });
 }
