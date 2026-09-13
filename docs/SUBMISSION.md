@@ -56,5 +56,13 @@ The upstream contribution is intentionally smaller than PermitPulse itself: it c
 ## Built during the hackathon
 PermitPulse, the permit-specific result schema, safe live-call gates, field-trial routing, tests, UI, and reusable CALL-E skill were created for this hackathon entry.
 
+## Public judge demo
+Interactive judge demo: https://keen-insight-pn5ef25.shipstatic.com
+
+The hosted judge demo is deliberately synthetic and labeled as such. It lets judges inspect the operator flow and structured receipt without credentials or live-call side effects. The production code path uses CALL-E server-side at runtime.
+
+## Upstream PR transport blocker
+GitHub is currently refusing this entrant account's fork request with HTTP 403 (`You cannot fork this repository at this time`). The validated contribution is public at https://github.com/am-selenephos/permit-status-check-skill and the exact patch is stored at `upstream/permit-status-check.patch`. The blocker is documented upstream in https://github.com/CALLE-AI/awesome-phone-call-agents/issues/475 and has also been escalated to the hackathon support address before the submission deadline.
+
 ## Target prize
 Most Practical Use Case.
